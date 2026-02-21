@@ -1,0 +1,24 @@
+# Web Framework
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Supabase
+supabase
+
+# AI / LLM
+anthropic
+google-genai
+
+# PDF Processing
+pymupdf
+
+# Utilities
+python-dotenv
+pydantic
+pydantic-settings
+httpx
+
+# Testing
+pytest
+pytest-asyncio

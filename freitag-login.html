@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0A5F38">
+  <title>Login | Freitag Laboratórios</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --freitag-green: #0A5F38;
+      --freitag-green-light: #12845A;
+      --freitag-green-dark: #064428;
+      --freitag-accent: #7ED957;
+      --freitag-glow: rgba(126, 217, 87, 0.15);
+      --freitag-glow-strong: rgba(126, 217, 87, 0.25);
+      --bg-primary: #FAFBFC;
+      --bg-secondary: #F3F5F7;
+      --bg-card: #FFFFFF;
+      --bg-input: #F8F9FA;
+      --text-primary: #1A1A2E;
+      --text-secondary: #4A5568;
+      --text-muted: #718096;
+      --text-on-dark: #FFFFFF;
+      --border-light: #E2E8F0;
+      --border-medium: #CBD5E0;
+      --error-color: #E53E3E;
+      --error-bg: #FFF5F5;
+      --success-color: #38A169;
+      --shadow-sm: 0 2px 8px rgba(10, 95, 56, 0.06);
+      --shadow-md: 0 4px 20px rgba(10, 95, 56, 0.08);
+      --shadow-lg: 0 20px 60px rgba(10, 95, 56, 0.12);
+      --shadow-xl: 0 25px 80px rgba(10, 95, 56, 0.18);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+      --transition-fast: all 0.15s ease;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ===== LAYOUT SPLIT ===== */
+    .login-container {
+      display: flex;
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    /* ===== LADO ESQUERDO - BRANDING ===== */
+    .branding-side {
+      flex: 1;
+      background: linear-gradient(135deg, var(--freitag-green-dark) 0%, var(--freitag-green) 50%, var(--freitag-green-light) 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .branding-side::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(126, 217, 87, 0.1) 0%, transparent 50%);
+      animation: rotateBg 30s linear infinite;
+    }
+
+    @keyframes rotateBg {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .branding-side::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--freitag-accent), var(--freitag-green-light), var(--freitag-accent));
+    }
+
+    /* Padrão decorativo */
+    .pattern-overlay {
+      position: absolute;
+      inset: 0;
+      opacity: 0.05;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .branding-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      max-width: 480px;
+    }
+
+    .branding-logo {
+      margin-bottom: 40px;
+    }
+
+    .logo-icon-large {
+      width: 100px;
+      height: 100px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-xl);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      animation: floatIcon 6s ease-in-out infinite;
+    }
+
+    @keyframes floatIcon {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .logo-icon-large svg {
+      width: 56px;
+      height: 56px;
+      fill: var(--freitag-accent);
+    }
+
+    .branding-logo h1 {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 2.8rem;
+      font-weight: 700;
+      color: var(--text-on-dark);
+      letter-spacing: -1px;
+      margin-bottom: 8px;
+    }
+
+    .branding-logo span {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.7);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .branding-text h2 {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 1.6rem;
+      font-weight: 400;
+      color: var(--text-on-dark);
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+
+    .branding-text p {
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.75);
+      line-height: 1.7;
+      margin-bottom: 40px;
+    }
+
+    .features-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      text-align: left;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 20px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-md);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: var(--transition);
+    }
+
+    .feature-item:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateX(5px);
+    }
+
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(126, 217, 87, 0.2);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .feature-icon svg {
+      width: 22px;
+      height: 22px;
+      fill: var(--freitag-accent);
+    }
+
+    .feature-item span {
+      font-size: 0.95rem;
+      color: var(--text-on-dark);
+      font-weight: 500;
+    }
+
+    /* ===== LADO DIREITO - FORMULÁRIO ===== */
+    .form-side {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+      background: var(--bg-primary);
+      position: relative;
+    }
+
+    .form-container {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .form-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .form-header-icon {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, var(--freitag-green) 0%, var(--freitag-green-light) 100%);
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 8px 24px rgba(10, 95, 56, 0.25);
+    }
+
+    .form-header-icon svg {
+      width: 32px;
+      height: 32px;
+      fill: var(--text-on-dark);
+    }
+
+    .form-header h2 {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .form-header p {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+    }
+
+    /* ===== FORMULÁRIO ===== */
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .form-group {
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      fill: var(--text-muted);
+      transition: var(--transition-fast);
+      pointer-events: none;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 16px 16px 16px 52px;
+      background: var(--bg-input);
+      border: 2px solid transparent;
+      border-radius: var(--radius-md);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      color: var(--text-primary);
+      transition: var(--transition);
+      outline: none;
+    }
+
+    .form-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .form-input:focus {
+      background: var(--bg-card);
+      border-color: var(--freitag-green);
+      box-shadow: 0 0 0 4px var(--freitag-glow);
+    }
+
+    .form-input:focus + .input-icon,
+    .form-input:not(:placeholder-shown) + .input-icon {
+      fill: var(--freitag-green);
+    }
+
+    .form-group.error .form-input {
+      border-color: var(--error-color);
+      background: var(--error-bg);
+    }
+
+    .form-group.error .input-icon {
+      fill: var(--error-color);
+    }
+
+    /* Toggle senha */
+    .toggle-password {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .toggle-password svg {
+      width: 20px;
+      height: 20px;
+      fill: var(--text-muted);
+      transition: var(--transition-fast);
+    }
+
+    .toggle-password:hover svg {
+      fill: var(--freitag-green);
+    }
+
+    /* Error message */
+    .error-message {
+      display: none;
+      font-size: 0.8rem;
+      color: var(--error-color);
+      margin-top: 6px;
+      padding-left: 4px;
+    }
+
+    .form-group.error .error-message {
+      display: block;
+      animation: shakeError 0.4s ease;
+    }
+
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    /* ===== OPÇÕES EXTRAS ===== */
+    .form-options {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .remember-me {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .remember-me input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--freitag-green);
+      cursor: pointer;
+    }
+
+    .remember-me span {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .forgot-password {
+      font-size: 0.9rem;
+      color: var(--freitag-green);
+      text-decoration: none;
+      font-weight: 600;
+      transition: var(--transition-fast);
+    }
+
+    .forgot-password:hover {
+      color: var(--freitag-green-dark);
+      text-decoration: underline;
+    }
+
+    /* ===== BOTÃO LOGIN ===== */
+    .btn-login {
+      width: 100%;
+      padding: 18px 32px;
+      background: linear-gradient(135deg, var(--freitag-green) 0%, var(--freitag-green-light) 100%);
+      color: var(--text-on-dark);
+      border: none;
+      border-radius: var(--radius-md);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 16px rgba(10, 95, 56, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-login::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .btn-login:hover::before {
+      left: 100%;
+    }
+
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(10, 95, 56, 0.35);
+    }
+
+    .btn-login:active {
+      transform: translateY(0);
+    }
+
+    .btn-login:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-login svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    .btn-login .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ===== FOOTER ===== */
+    .form-footer {
+      text-align: center;
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-light);
+    }
+
+    .form-footer p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .form-footer a {
+      color: var(--freitag-green);
+      font-weight: 600;
+      text-decoration: none;
+      transition: var(--transition-fast);
+    }
+
+    .form-footer a:hover {
+      color: var(--freitag-green-dark);
+      text-decoration: underline;
+    }
+
+    /* ===== ALERT ===== */
+    .alert {
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      font-size: 0.9rem;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .alert.show {
+      display: flex;
+    }
+
+    .alert.error {
+      background: #FEE2E2;
+      color: #991B1B;
+      border: 1px solid #FECACA;
+    }
+
+    .alert.success {
+      background: #D1FAE5;
+      color: #065F46;
+      border: 1px solid #A7F3D0;
+    }
+
+    .alert svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+      flex-shrink: 0;
+    }
+
+    /* ===== MOBILE LOGO (aparece apenas no mobile) ===== */
+    .mobile-logo {
+      display: none;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .mobile-logo .logo-icon-small {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, var(--freitag-green) 0%, var(--freitag-green-light) 100%);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      box-shadow: 0 4px 16px rgba(10, 95, 56, 0.25);
+    }
+
+    .mobile-logo .logo-icon-small svg {
+      width: 32px;
+      height: 32px;
+      fill: var(--text-on-dark);
+    }
+
+    .mobile-logo h1 {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 1.5rem;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .mobile-logo span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1024px) {
+      .branding-side {
+        display: none;
+      }
+
+      .form-side {
+        flex: none;
+        width: 100%;
+      }
+
+      .mobile-logo {
+        display: block;
+      }
+
+      .form-header-icon {
+        display: none;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .form-side {
+        padding: 24px 20px;
+      }
+
+      .form-header h2 {
+        font-size: 1.5rem;
+      }
+
+      .form-options {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    /* ===== VERSÃO COMPACTA ===== */
+    @media (max-height: 700px) {
+      .branding-logo {
+        margin-bottom: 24px;
+      }
+
+      .logo-icon-large {
+        width: 72px;
+        height: 72px;
+        margin-bottom: 16px;
+      }
+
+      .logo-icon-large svg {
+        width: 40px;
+        height: 40px;
+      }
+
+      .branding-logo h1 {
+        font-size: 2.2rem;
+      }
+
+      .branding-text p {
+        margin-bottom: 24px;
+      }
+
+      .features-list {
+        gap: 10px;
+      }
+
+      .feature-item {
+        padding: 10px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <!-- LADO ESQUERDO - BRANDING -->
+    <div class="branding-side">
+      <div class="pattern-overlay"></div>
+      
+      <div class="branding-content">
+        <div class="branding-logo">
+          <div class="logo-icon-large">
+            <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+          </div>
+          <h1>Freitag</h1>
+          <span>Laboratórios</span>
+        </div>
+
+        <div class="branding-text">
+          <h2>Assistente Virtual Inteligente</h2>
+          <p>Acesse nosso sistema de atendimento inteligente para tirar dúvidas sobre análises, amostras, laudos e muito mais.</p>
+        </div>
+
+        <div class="features-list">
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+            </div>
+            <span>Atendimento 24 horas por dia</span>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+            </div>
+            <span>Acompanhe seus laudos em tempo real</span>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+            </div>
+            <span>Seus dados protegidos e seguros</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LADO DIREITO - FORMULÁRIO -->
+    <div class="form-side">
+      <div class="form-container">
+        <!-- Logo Mobile -->
+        <div class="mobile-logo">
+          <div class="logo-icon-small">
+            <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+          </div>
+          <h1>Freitag</h1>
+          <span>Laboratórios</span>
+        </div>
+
+        <!-- Header do Form -->
+        <div class="form-header">
+          <div class="form-header-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          </div>
+          <h2>Bem-vindo de volta!</h2>
+          <p>Faça login para acessar o assistente virtual</p>
+        </div>
+
+        <!-- Alert -->
+        <div class="alert" id="alertBox">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          <span id="alertMessage"></span>
+        </div>
+
+        <!-- Formulário -->
+        <form class="login-form" id="loginForm" novalidate>
+          <div class="form-group" id="emailGroup">
+            <label for="email">E-mail ou Usuário</label>
+            <div class="input-wrapper">
+              <input 
+                type="text" 
+                id="email" 
+                class="form-input" 
+                placeholder="Digite seu e-mail ou usuário"
+                autocomplete="username"
+                required
+              >
+              <svg class="input-icon" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+            </div>
+            <span class="error-message">Por favor, informe seu e-mail ou usuário</span>
+          </div>
+
+          <div class="form-group" id="passwordGroup">
+            <label for="password">Senha</label>
+            <div class="input-wrapper">
+              <input 
+                type="password" 
+                id="password" 
+                class="form-input" 
+                placeholder="Digite sua senha"
+                autocomplete="current-password"
+                required
+              >
+              <svg class="input-icon" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+              <button type="button" class="toggle-password" id="togglePassword" tabindex="-1">
+                <svg viewBox="0 0 24 24" id="eyeIcon"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+              </button>
+            </div>
+            <span class="error-message">Por favor, informe sua senha</span>
+          </div>
+
+          <div class="form-options">
+            <label class="remember-me">
+              <input type="checkbox" id="rememberMe">
+              <span>Lembrar de mim</span>
+            </label>
+            <a href="#" class="forgot-password">Esqueceu a senha?</a>
+          </div>
+
+          <button type="submit" class="btn-login" id="btnLogin">
+            <span>Entrar</span>
+            <svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg>
+          </button>
+
+        </form>
+
+        <div class="form-footer">
+          <p>Não tem uma conta? <a href="#">Solicitar acesso</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============ ELEMENTOS ============
+    const loginForm = document.getElementById('loginForm');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const emailGroup = document.getElementById('emailGroup');
+    const passwordGroup = document.getElementById('passwordGroup');
+    const togglePassword = document.getElementById('togglePassword');
+    const eyeIcon = document.getElementById('eyeIcon');
+    const btnLogin = document.getElementById('btnLogin');
+    const alertBox = document.getElementById('alertBox');
+    const alertMessage = document.getElementById('alertMessage');
+
+    // ============ TOGGLE PASSWORD ============
+    togglePassword.addEventListener('click', function() {
+      const type = passwordInput.type === 'password' ? 'text' : 'password';
+      passwordInput.type = type;
+      
+      // Trocar ícone
+      if (type === 'text') {
+        eyeIcon.innerHTML = '<path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>';
+      } else {
+        eyeIcon.innerHTML = '<path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>';
+      }
+    });
+
+    // ============ VALIDAÇÃO ============
+    function validateEmail(email) {
+      return email.length > 0;
+    }
+
+    function validatePassword(password) {
+      return password.length >= 1;
+    }
+
+    function showError(group) {
+      group.classList.add('error');
+    }
+
+    function hideError(group) {
+      group.classList.remove('error');
+    }
+
+    function showAlert(message, type = 'error') {
+      alertBox.className = 'alert show ' + type;
+      alertMessage.textContent = message;
+      
+      // Trocar ícone baseado no tipo
+      const icon = alertBox.querySelector('svg');
+      if (type === 'success') {
+        icon.innerHTML = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>';
+      } else {
+        icon.innerHTML = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>';
+      }
+    }
+
+    function hideAlert() {
+      alertBox.classList.remove('show');
+    }
+
+    // ============ INPUT EVENTS ============
+    emailInput.addEventListener('input', () => hideError(emailGroup));
+    passwordInput.addEventListener('input', () => hideError(passwordGroup));
+    emailInput.addEventListener('focus', hideAlert);
+    passwordInput.addEventListener('focus', hideAlert);
+
+    // ============ FORM SUBMIT ============
+    loginForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      hideAlert();
+      let isValid = true;
+
+      // Validar email
+      if (!validateEmail(emailInput.value)) {
+        showError(emailGroup);
+        isValid = false;
+      }
+
+      // Validar senha
+      if (!validatePassword(passwordInput.value)) {
+        showError(passwordGroup);
+        isValid = false;
+      }
+
+      if (!isValid) return;
+
+      // Loading state
+      btnLogin.disabled = true;
+      btnLogin.innerHTML = '<div class="spinner"></div><span>Entrando...</span>';
+
+      try {
+        // Simular chamada de API (substitua pela integração real)
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        // Simular validação (substitua pela lógica real)
+        const email = emailInput.value;
+        const password = passwordInput.value;
+
+        // Exemplo de validação fake
+        if (email === 'admin' && password === '123') {
+          showAlert('Login realizado com sucesso! Redirecionando...', 'success');
+          
+          // Salvar dados se "Lembrar de mim" estiver marcado
+          if (document.getElementById('rememberMe').checked) {
+            localStorage.setItem('rememberedUser', email);
+          }
+
+          // Redirecionar após 1.5s
+          setTimeout(() => {
+            window.location.href = 'freitag-chat.html';
+          }, 1500);
+        } else {
+          showAlert('E-mail/usuário ou senha incorretos. Tente novamente.');
+          btnLogin.disabled = false;
+          btnLogin.innerHTML = '<span>Entrar</span><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg>';
+        }
+
+      } catch (error) {
+        showAlert('Erro ao conectar. Tente novamente mais tarde.');
+        btnLogin.disabled = false;
+        btnLogin.innerHTML = '<span>Entrar</span><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg>';
+      }
+    });
+
+    // ============ CARREGAR USUÁRIO SALVO ============
+    const rememberedUser = localStorage.getItem('rememberedUser');
+    if (rememberedUser) {
+      emailInput.value = rememberedUser;
+      document.getElementById('rememberMe').checked = true;
+    }
+
+    // ============ ENTER PARA PRÓXIMO CAMPO ============
+    emailInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        passwordInput.focus();
+      }
+    });
+  </script>
+
+</body>
+</html>
