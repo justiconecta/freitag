@@ -1,5 +1,3 @@
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-
 interface ChatRequest {
   message: string;
   conversation_id?: string;
@@ -21,7 +19,7 @@ export async function sendChatMessage(
   request: ChatRequest,
   token: string
 ): Promise<ChatResponse> {
-  const response = await fetch(`${BACKEND_URL}/api/chat`, {
+  const response = await fetch("/api/chat", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -38,7 +36,7 @@ export async function sendChatMessage(
 }
 
 export async function getConversations(token: string) {
-  const response = await fetch(`${BACKEND_URL}/api/conversations`, {
+  const response = await fetch("/api/conversations", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
