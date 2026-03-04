@@ -1,5 +1,49 @@
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
 backend/.env
+*.key
+*.pem
+
+# Dependencies
+node_modules/
+node_modules
+
+# Build & Logs
+dist/
+build/
+*.log
+logs/
+
+# Python
 __pycache__/
 *.pyc
+
+# IDE & OS
 .DS_Store
+Thumbs.db
+.idea/
+*.swp
+
+# Large files
 *.pdf
+
+# Nested repos / large files
+Normas Freitag/
+
+# AIOS Framework (não versionado)
+.aios-core/
+.agent/
+.claude/
+.codex/
+.gemini/
+.antigravity/
+.cursor/
+.github/
+squads/
+AGENTS.md
+pro-installed-manifest.yaml
+pro-version.json
+package.json
+package-lock.json
