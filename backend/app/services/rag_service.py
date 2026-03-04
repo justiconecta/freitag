@@ -1,4 +1,4 @@
-import uuid
+import re
 
 from app.config import Settings
 from app.models.database import get_supabase_client
@@ -6,6 +6,27 @@ from app.models.schemas import ChatResponse, SourceInfo
 from app.services.embedding_service import EmbeddingService
 from app.services.vector_service import VectorService
 from app.services.llm_service import LLMService
+
+CONVERSATIONAL_PATTERNS = [
+    re.compile(r"^(oi|olá|ola|hey|eai|e ai|bom dia|boa tarde|boa noite|hello|hi)\b", re.IGNORECASE),
+    re.compile(r"^(tchau|até mais|ate mais|adeus|bye|falou|valeu)\b", re.IGNORECASE),
+    re.compile(r"^(obrigad[oa]|brigad[oa]|valeu|thanks|agradeço)\b", re.IGNORECASE),
+    re.compile(r"^(tudo bem|como vai|beleza|tranquilo|show|massa)\b", re.IGNORECASE),
+    re.compile(r"^(quem é você|o que você faz|como funciona|me ajuda|help)\b", re.IGNORECASE),
+]
+
+HISTORY_LIMIT = 10
+
+
+def classify_intent(message: str) -> str:
+    """Classify message as 'conversational' or 'technical'."""
+    trimmed = message.strip()
+    word_count = len(trimmed.split())
+
+    for pattern in CONVERSATIONAL_PATTERNS:
+        if pattern.search(trimmed):
+            return "conversational" if word_count <= 8 else "technical"
+    return "technical"
 
 
 class RAGService:
@@ -24,42 +45,55 @@ class RAGService:
         if not conversation_id:
             conversation_id = await self._create_conversation(user_id, message)
 
-        # 2. Save user message
+        # 2. Classify intent
+        intent = classify_intent(message)
+
+        # 3. Load conversation history (BEFORE saving current message to avoid duplication)
+        history = await self._load_conversation_history(conversation_id)
+
+        # 4. Save user message
         await self._save_message(conversation_id, "user", message)
 
-        # 3. Generate embedding for the query
-        query_embedding = await self.embedding_service.get_embedding(message)
+        sources: list[SourceInfo] = []
 
-        # 4. Search for similar chunks
-        chunks = await self.vector_service.search_similar_chunks(query_embedding)
-
-        # 5. Generate response with Claude
-        if chunks:
-            response_text = await self.llm_service.generate_response(message, chunks)
+        if intent == "conversational":
+            # 5a. Conversational: skip embedding/search, respond directly
+            response_text = await self.llm_service.generate_conversational_response(
+                message, history
+            )
         else:
-            response_text = (
-                "Não encontrei informações relevantes nas normas técnicas disponíveis "
-                "para responder sua pergunta. Tente reformular ou pergunte sobre outro tema "
-                "relacionado a normas laboratoriais."
-            )
+            # 5b. Technical: full RAG pipeline
+            query_embedding = await self.embedding_service.get_embedding(message)
+            chunks = await self.vector_service.search_similar_chunks(query_embedding)
 
-        # 6. Build sources
-        sources = [
-            SourceInfo(
-                document_name=chunk.get("doc_name", ""),
-                section=chunk.get("section_title"),
-                page=chunk.get("page_start"),
-                similarity=round(chunk.get("similarity", 0), 3),
-            )
-            for chunk in chunks[:5]  # Top 5 sources
-        ]
+            if chunks:
+                response_text = await self.llm_service.generate_response(
+                    message, chunks, history
+                )
+            else:
+                response_text = (
+                    "Não encontrei informações relevantes nas normas técnicas disponíveis "
+                    "para responder sua pergunta. Tente reformular ou pergunte sobre outro tema "
+                    "relacionado a normas laboratoriais."
+                )
 
-        # 7. Save assistant message
+            # Build sources
+            sources = [
+                SourceInfo(
+                    document_name=chunk.get("doc_name", ""),
+                    section=chunk.get("section_title"),
+                    page=chunk.get("page_start"),
+                    similarity=round(chunk.get("similarity", 0), 3),
+                )
+                for chunk in chunks[:5]
+            ]
+
+        # 6. Save assistant message
         message_id = await self._save_message(
             conversation_id,
             "assistant",
             response_text,
-            sources=[s.model_dump() for s in sources],
+            sources=[s.model_dump() for s in sources] if sources else None,
         )
 
         return ChatResponse(
@@ -68,6 +102,27 @@ class RAGService:
             message_id=message_id,
             sources=sources,
         )
+
+    async def _load_conversation_history(
+        self, conversation_id: str
+    ) -> list[dict]:
+        """Load recent conversation history for context."""
+        result = (
+            self.supabase.table("messages")
+            .select("role, content")
+            .eq("conversation_id", conversation_id)
+            .order("created_at", desc=True)
+            .limit(HISTORY_LIMIT)
+            .execute()
+        )
+
+        if not result.data:
+            return []
+
+        return [
+            {"role": msg["role"], "content": msg["content"]}
+            for msg in reversed(result.data)
+        ]
 
     async def _create_conversation(self, user_id: str, first_message: str) -> str:
         """Create a new conversation."""

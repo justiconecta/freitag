@@ -17,6 +17,18 @@ REGRAS OBRIGATÓRIAS:
 FORMATO DA CITAÇÃO:
 [Fonte: {nome da norma}, Seção {x}, p. {y}]"""
 
+CONVERSATIONAL_SYSTEM_PROMPT = """Você é o NormaChat, assistente virtual da Freitag Laboratórios.
+
+REGRAS:
+1. Responda de forma amigável e profissional em português brasileiro
+2. Você é especializado em normas técnicas laboratoriais (ABNT, MAPA, Farmacopeia, Standard Methods)
+3. Para saudações, apresente-se brevemente e ofereça ajuda com consultas sobre normas
+4. NÃO forneça informações técnicas inventadas — se o usuário fizer uma pergunta técnica, diga que pode buscar nas normas disponíveis
+5. Mantenha respostas curtas e objetivas para interações casuais
+6. Seja cordial mas não excessivamente informal"""
+
+MAX_TOKENS_CONVERSATIONAL = 256
+
 
 class LLMService:
     def __init__(self, settings: Settings):
@@ -26,10 +38,12 @@ class LLMService:
         self.temperature = settings.rag_temperature
 
     async def generate_response(
-        self, query: str, context_chunks: list[dict]
+        self,
+        query: str,
+        context_chunks: list[dict],
+        history: list[dict] | None = None,
     ) -> str:
         """Generate a response using Claude with RAG context."""
-        # Build context from chunks
         context_parts = []
         for i, chunk in enumerate(context_chunks, 1):
             doc_name = chunk.get("doc_name", "Documento desconhecido")
@@ -55,12 +69,44 @@ class LLMService:
 PERGUNTA DO USUÁRIO:
 {query}"""
 
+        messages = []
+        if history:
+            messages.extend(
+                {"role": msg["role"], "content": msg["content"]}
+                for msg in history
+            )
+        messages.append({"role": "user", "content": user_message})
+
         response = self.client.messages.create(
             model=self.model,
             max_tokens=self.max_tokens,
             temperature=self.temperature,
             system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_message}],
+            messages=messages,
+        )
+
+        return response.content[0].text
+
+    async def generate_conversational_response(
+        self,
+        query: str,
+        history: list[dict] | None = None,
+    ) -> str:
+        """Generate a conversational response without RAG context."""
+        messages = []
+        if history:
+            messages.extend(
+                {"role": msg["role"], "content": msg["content"]}
+                for msg in history
+            )
+        messages.append({"role": "user", "content": query})
+
+        response = self.client.messages.create(
+            model=self.model,
+            max_tokens=MAX_TOKENS_CONVERSATIONAL,
+            temperature=self.temperature,
+            system=CONVERSATIONAL_SYSTEM_PROMPT,
+            messages=messages,
         )
 
         return response.content[0].text
