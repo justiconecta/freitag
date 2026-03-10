@@ -6,15 +6,16 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function Header() {
   const router = useRouter();
-  const [userName, setUserName] = useState("Usuário");
+  const [userName, setUserName] = useState(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("jc_colaborador_login") || "Usuário";
+    }
+    return "Usuário";
+  });
 
   useEffect(() => {
-    // Tentar pegar o login do colaborador do sessionStorage
-    const colaboradorLogin = sessionStorage.getItem("jc_colaborador_login");
-    if (colaboradorLogin) {
-      setUserName(colaboradorLogin);
-      return;
-    }
+    // Se já temos o login do sessionStorage, não precisa buscar no Supabase
+    if (sessionStorage.getItem("jc_colaborador_login")) return;
 
     // Fallback: pegar do Supabase Auth
     const supabase = createClient();
