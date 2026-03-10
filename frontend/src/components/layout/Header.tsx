@@ -9,17 +9,47 @@ export default function Header() {
   const [userName, setUserName] = useState("Usuário");
 
   useEffect(() => {
+    // Tentar pegar o login do colaborador do sessionStorage
+    const colaboradorLogin = sessionStorage.getItem("jc_colaborador_login");
+    if (colaboradorLogin) {
+      setUserName(colaboradorLogin);
+      return;
+    }
+
+    // Fallback: pegar do Supabase Auth
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
-        setUserName(user.email?.split("@")[0] || "Usuário");
+        const name =
+          user.user_metadata?.full_name ||
+          user.email?.split("@")[0] ||
+          "Usuário";
+        setUserName(name);
       }
     });
   }, []);
 
   const handleLogout = async () => {
+    // 1. Encerrar sessão de tracking
+    const sessionId = sessionStorage.getItem("jc_session_id");
+    if (sessionId) {
+      try {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: sessionId }),
+        });
+      } catch (err) {
+        console.error("Error closing session:", err);
+      }
+      sessionStorage.removeItem("jc_session_id");
+      sessionStorage.removeItem("jc_colaborador_login");
+    }
+
+    // 2. Encerrar sessão Supabase
     const supabase = createClient();
     await supabase.auth.signOut();
+
     router.push("/login");
   };
 
@@ -33,7 +63,6 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
         {/* Logo icon + Freitag + NormaChat */}
         <div className="flex items-center gap-3">
-          {/* Freitag circular icon — SVG monocromático branco */}
           <svg className="w-9 h-9" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="50" cy="50" r="46" stroke="white" strokeWidth="5" opacity="0.95"/>
             <circle cx="40" cy="55" r="20" stroke="white" strokeWidth="4.5" opacity="0.95"/>
@@ -47,7 +76,7 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Actions — tudo alinhado verticalmente pelo flex items-center */}
+        {/* Actions */}
         <div className="flex items-center gap-2">
           {/* Online indicator */}
           <div className="hidden sm:flex items-center gap-1.5 px-3">
@@ -63,7 +92,7 @@ export default function Header() {
             <span className="hidden sm:inline text-white/80 text-sm font-medium max-w-[120px] truncate capitalize leading-none">{userName}</span>
           </div>
 
-          {/* Nova conversa — botão principal */}
+          {/* Nova conversa */}
           <button
             onClick={handleNewChat}
             className="flex items-center gap-2 px-4 py-2 bg-white text-freitag-green rounded-full text-sm font-semibold hover:bg-white/90 transition-all shadow-sm"
@@ -73,7 +102,7 @@ export default function Header() {
             <span className="hidden sm:inline">Nova conversa</span>
           </button>
 
-          {/* Sair — apenas ícone */}
+          {/* Sair */}
           <button
             onClick={handleLogout}
             className="flex items-center justify-center w-9 h-9 text-white/60 hover:text-white/95 transition-colors"

@@ -6,39 +6,52 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function LoginForm() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [login, setLogin] = useState("");
+  const [senha, setSenha] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const isFormValid = email.trim().length > 0 && password.length > 0;
+  const isFormValid = login.trim().length > 0 && senha.length > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!email.trim()) {
-      setError("Por favor, informe seu e-mail.");
+    if (!login.trim()) {
+      setError("Por favor, informe seu login.");
       return;
     }
-    if (!password) {
+    if (!senha) {
       setError("Por favor, informe sua senha.");
       return;
     }
 
     setLoading(true);
     try {
-      const supabase = createClient();
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ login: login.trim(), senha }),
       });
 
-      if (authError) {
-        setError("E-mail ou senha incorretos. Verifique seus dados e tente novamente.");
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Login ou senha incorretos.");
         return;
       }
+
+      // Setar sessão Supabase no client para manter RLS funcionando
+      const supabase = createClient();
+      await supabase.auth.setSession({
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+      });
+
+      // Salvar session_id para tracking de logout
+      sessionStorage.setItem("jc_session_id", data.session_id);
+      sessionStorage.setItem("jc_colaborador_login", data.colaborador.login);
 
       router.push("/chat");
     } catch {
@@ -62,36 +75,36 @@ export default function LoginForm() {
         </div>
       )}
 
-      {/* Email block — label colado ao campo */}
+      {/* Login block */}
       <div className="mb-8">
-        <label htmlFor="email" className="block text-sm font-semibold text-text-secondary mb-1.5">
-          E-mail
+        <label htmlFor="login" className="block text-sm font-semibold text-text-secondary mb-1.5">
+          Login
         </label>
         <div className="relative">
           <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => { setEmail(e.target.value); setError(""); }}
-            placeholder="Digite seu e-mail"
+            id="login"
+            type="text"
+            value={login}
+            onChange={(e) => { setLogin(e.target.value); setError(""); }}
+            placeholder="Digite seu login"
             className={`${inputBase} ${error ? inputError : inputNormal}`}
-            autoComplete="email"
+            autoComplete="username"
           />
-          <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 fill-text-secondary pointer-events-none" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 fill-text-secondary pointer-events-none" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
         </div>
       </div>
 
-      {/* Password block — label colado ao campo */}
+      {/* Senha block */}
       <div className="mb-5">
-        <label htmlFor="password" className="block text-sm font-semibold text-text-secondary mb-1.5">
+        <label htmlFor="senha" className="block text-sm font-semibold text-text-secondary mb-1.5">
           Senha
         </label>
         <div className="relative">
           <input
-            id="password"
+            id="senha"
             type={showPassword ? "text" : "password"}
-            value={password}
-            onChange={(e) => { setPassword(e.target.value); setError(""); }}
+            value={senha}
+            onChange={(e) => { setSenha(e.target.value); setError(""); }}
             placeholder="Digite sua senha"
             className={`${inputBase} pr-12 ${error ? inputError : inputNormal}`}
             autoComplete="current-password"
@@ -114,7 +127,7 @@ export default function LoginForm() {
         </div>
       </div>
 
-      {/* Lembrar + Esqueceu — alinhado à borda dos inputs */}
+      {/* Lembrar + Esqueceu */}
       <div className="flex items-center justify-between mb-9">
         <label className="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" className="w-4 h-4 accent-freitag-green cursor-pointer" />
