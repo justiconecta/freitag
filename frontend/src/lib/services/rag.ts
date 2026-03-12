@@ -84,16 +84,19 @@ export async function processQuery(
     conversationId = data!.id;
   }
 
+  // TypeScript narrowing: conversationId is guaranteed non-null after the block above
+  const convId = conversationId!;
+
   // 2. Classify intent
   const intent = classifyIntent(message);
 
   // 3. Load conversation history (BEFORE saving current message to avoid duplication)
-  const history = await loadConversationHistory(conversationId);
+  const history = await loadConversationHistory(convId);
 
   // 4. Save user message
   await supabase
     .from("messages")
-    .insert({ conversation_id: conversationId, role: "user", content: message });
+    .insert({ conversation_id: convId, role: "user", content: message });
 
   let responseText: string;
   let sources: SourceInfo[] = [];
@@ -128,7 +131,7 @@ export async function processQuery(
   const { data: msgData } = await supabase
     .from("messages")
     .insert({
-      conversation_id: conversationId,
+      conversation_id: convId,
       role: "assistant",
       content: responseText,
       sources: sources.length > 0 ? sources : null,
@@ -140,11 +143,11 @@ export async function processQuery(
   await supabase
     .from("conversations")
     .update({ updated_at: new Date().toISOString() })
-    .eq("id", conversationId);
+    .eq("id", convId);
 
   return {
     message: responseText,
-    conversation_id: conversationId!,
+    conversation_id: convId,
     message_id: msgData!.id,
     sources,
   };
