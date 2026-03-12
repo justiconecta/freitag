@@ -71,10 +71,9 @@ class RAGService:
                     message, chunks, history
                 )
             else:
-                response_text = (
-                    "Não encontrei informações relevantes nas normas técnicas disponíveis "
-                    "para responder sua pergunta. Tente reformular ou pergunte sobre outro tema "
-                    "relacionado a normas laboratoriais."
+                # Fallback: use LLM general knowledge instead of static message
+                response_text = await self.llm_service.generate_fallback_response(
+                    message, history
                 )
 
             # Build sources

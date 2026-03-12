@@ -4,6 +4,7 @@ import { searchSimilarChunks } from "./vector";
 import {
   generateResponse,
   generateConversationalResponse,
+  generateFallbackResponse,
   HistoryMessage,
 } from "./llm";
 
@@ -112,10 +113,8 @@ export async function processQuery(
     if (chunks.length > 0) {
       responseText = await generateResponse(message, chunks, history);
     } else {
-      responseText =
-        "Não encontrei informações relevantes nas normas técnicas disponíveis " +
-        "para responder sua pergunta. Tente reformular ou pergunte sobre outro tema " +
-        "relacionado a normas laboratoriais.";
+      // Fallback: use LLM general knowledge instead of static message
+      responseText = await generateFallbackResponse(message, history);
     }
 
     // Build sources
