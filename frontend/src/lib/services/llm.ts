@@ -14,9 +14,10 @@ REGRAS OBRIGATÓRIAS:
 3. SEMPRE cite a norma de origem ao final de cada informação relevante
 4. Responda em português brasileiro
 5. Use linguagem técnica mas acessível
-6. Quando houver tabelas ou valores numéricos, formate de forma clara
+6. Quando houver tabelas ou valores numéricos, formate de forma clara e legível
 7. Se a pergunta for ambígua, peça esclarecimento
 8. NÃO invente informações. Seja factual e preciso.
+9. NUNCA use formatação Markdown (como ##, ###, **, *, ```, etc.). Responda APENAS em texto plano. Use quebras de linha e espaçamento para organizar a resposta.
 
 FORMATO DA CITAÇÃO:
 [Fonte: {nome da norma}, Seção {x}, p. {y}]`;
@@ -29,7 +30,8 @@ REGRAS:
 3. Para saudações, apresente-se brevemente e ofereça ajuda com consultas sobre normas
 4. NÃO forneça informações técnicas inventadas — se o usuário fizer uma pergunta técnica, diga que pode buscar nas normas disponíveis
 5. Mantenha respostas curtas e objetivas para interações casuais
-6. Seja cordial mas não excessivamente informal`;
+6. Seja cordial mas não excessivamente informal
+7. NUNCA use formatação Markdown. Responda APENAS em texto plano.`;
 
 export type MessageRole = "user" | "assistant";
 
