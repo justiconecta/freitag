@@ -15,7 +15,7 @@ def clean_text(text: str) -> str:
 def chunk_text(
     text: str,
     chunk_size: int = 512,
-    chunk_overlap: int = 50,
+    chunk_overlap: int = 128,
 ) -> list[str]:
     """Split text into overlapping chunks."""
     words = text.split()

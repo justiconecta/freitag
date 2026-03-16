@@ -63,8 +63,14 @@ class RAGService:
             )
         else:
             # 5b. Technical: full RAG pipeline
-            query_embedding = await self.embedding_service.get_embedding(message)
-            chunks = await self.vector_service.search_similar_chunks(query_embedding)
+            # Expand query for better semantic search
+            expanded_query = await self._expand_query(message)
+            search_text = expanded_query or message
+
+            query_embedding = await self.embedding_service.get_embedding(search_text)
+            chunks = await self.vector_service.search_similar_chunks(
+                query_embedding, query_text=message
+            )
 
             if chunks:
                 response_text = await self.llm_service.generate_response(
@@ -101,6 +107,14 @@ class RAGService:
             message_id=message_id,
             sources=sources,
         )
+
+    async def _expand_query(self, query: str) -> str | None:
+        """Expand short/technical queries for better semantic search."""
+        word_count = len(query.strip().split())
+        if word_count > 10:
+            return None
+
+        return await self.llm_service.expand_query(query)
 
     async def _load_conversation_history(
         self, conversation_id: str

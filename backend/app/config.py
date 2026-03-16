@@ -19,15 +19,15 @@ class Settings(BaseSettings):
     environment: str = "development"
 
     # RAG Settings
-    rag_similarity_threshold: float = 0.5
-    rag_max_chunks: int = 8
+    rag_similarity_threshold: float = 0.3
+    rag_max_chunks: int = 15
     rag_model: str = "claude-sonnet-4-20250514"
     rag_max_tokens: int = 2048
     rag_temperature: float = 0.3
     embedding_model: str = "gemini-embedding-001"
     embedding_dimensions: int = 768
     chunk_size: int = 512
-    chunk_overlap: int = 50
+    chunk_overlap: int = 128
 
     model_config = {"env_file": ".env", "extra": "ignore", "populate_by_name": True}
 

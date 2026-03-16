@@ -129,6 +129,24 @@ PERGUNTA DO USUÁRIO:
 
         return response.content[0].text
 
+    async def expand_query(self, query: str) -> str | None:
+        """Expand short/technical queries for better semantic search."""
+        try:
+            response = self.client.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=150,
+                temperature=0.0,
+                system=(
+                    "Expanda esta consulta tecnica para melhorar a busca semantica. "
+                    "Inclua sinonimos, siglas expandidas e termos relacionados. "
+                    "Responda APENAS com a query expandida, sem explicacoes."
+                ),
+                messages=[{"role": "user", "content": query}],
+            )
+            return response.content[0].text
+        except Exception:
+            return None
+
     async def generate_conversational_response(
         self,
         query: str,

@@ -42,7 +42,7 @@ export interface HistoryMessage {
 
 let client: Anthropic | null = null;
 
-function getClient() {
+export function getAnthropicClient() {
   if (!client) {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
@@ -58,7 +58,7 @@ export async function generateResponse(
   contextChunks: ChunkResult[],
   history: HistoryMessage[] = []
 ): Promise<string> {
-  const anthropic = getClient();
+  const anthropic = getAnthropicClient();
 
   const contextParts = contextChunks.map((chunk, i) => {
     const docName = chunk.doc_name || "Documento desconhecido";
@@ -117,7 +117,7 @@ export async function generateFallbackResponse(
   query: string,
   history: HistoryMessage[] = []
 ): Promise<string> {
-  const anthropic = getClient();
+  const anthropic = getAnthropicClient();
 
   const messages: Anthropic.MessageParam[] = [
     ...history.map((msg) => ({
@@ -147,7 +147,7 @@ export async function generateConversationalResponse(
   query: string,
   history: HistoryMessage[] = []
 ): Promise<string> {
-  const anthropic = getClient();
+  const anthropic = getAnthropicClient();
 
   const messages: Anthropic.MessageParam[] = [
     ...history.map((msg) => ({

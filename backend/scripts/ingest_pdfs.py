@@ -120,24 +120,47 @@ def extract_text_from_pdf(pdf_path: str) -> list[dict]:
 
 
 def create_chunks(pages: list[dict], chunk_size: int, chunk_overlap: int) -> list[dict]:
-    """Create chunks from extracted pages."""
-    all_chunks = []
+    """Create cross-page chunks with page tracking.
+
+    Concatenates all page text first, then chunks the full document text.
+    Uses word-level indexing to map chunks back to pages efficiently (O(n)).
+    """
+    if not pages:
+        return []
+
+    # Build full document text and word-to-page mapping
+    all_words = []
+    word_page_map = []  # word_page_map[i] = page number of word i
 
     for page in pages:
-        page_text = page["text"]
-        page_num = page["page_number"]
+        page_words = page["text"].split()
+        all_words.extend(page_words)
+        word_page_map.extend([page["page_number"]] * len(page_words))
 
-        chunks = chunk_text(page_text, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    if not all_words:
+        return []
 
-        for chunk in chunks:
-            if len(chunk.strip()) > 50:  # Skip very short chunks
-                all_chunks.append({
-                    "content": chunk,
-                    "page_start": page_num,
-                    "page_end": page_num,
-                })
+    # Chunk using word indices directly (same logic as chunk_text but tracked)
+    all_chunks = []
+    start = 0
 
-    print(f"  Created {len(all_chunks)} chunks")
+    while start < len(all_words):
+        end = min(start + chunk_size, len(all_words))
+        chunk_words = all_words[start:end]
+        chunk_content = " ".join(chunk_words)
+
+        if len(chunk_content.strip()) > 50:
+            all_chunks.append({
+                "content": chunk_content,
+                "page_start": word_page_map[start],
+                "page_end": word_page_map[end - 1],
+            })
+
+        start = end - chunk_overlap
+        if start >= len(all_words):
+            break
+
+    print(f"  Created {len(all_chunks)} cross-page chunks")
     return all_chunks
 
 
@@ -153,7 +176,10 @@ def _get_genai_client(settings):
         from google import genai
         from google.genai import types
         _genai_client = genai.Client(api_key=settings.google_api_key)
-        _embed_config = types.EmbedContentConfig(output_dimensionality=settings.embedding_dimensions)
+        _embed_config = types.EmbedContentConfig(
+            output_dimensionality=settings.embedding_dimensions,
+            task_type="RETRIEVAL_DOCUMENT",
+        )
     return _genai_client, _embed_config
 
 

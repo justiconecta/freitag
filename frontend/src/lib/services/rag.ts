@@ -5,6 +5,7 @@ import {
   generateResponse,
   generateConversationalResponse,
   generateFallbackResponse,
+  getAnthropicClient,
   HistoryMessage,
 } from "./llm";
 
@@ -46,6 +47,30 @@ function classifyIntent(message: string): Intent {
 
 const HISTORY_LIMIT = 10;
 
+async function expandQuery(query: string): Promise<string | null> {
+  const wordCount = query.trim().split(/\s+/).length;
+  if (wordCount > 10) return null;
+
+  try {
+    const client = getAnthropicClient();
+    const response = await client.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 150,
+      temperature: 0.0,
+      system:
+        "Expanda esta consulta tecnica para melhorar a busca semantica. " +
+        "Inclua sinonimos, siglas expandidas e termos relacionados. " +
+        "Responda APENAS com a query expandida, sem explicacoes.",
+      messages: [{ role: "user", content: query }],
+    });
+
+    const block = response.content[0];
+    return block.type === "text" ? block.text : null;
+  } catch {
+    return null;
+  }
+}
+
 async function loadConversationHistory(
   conversationId: string
 ): Promise<HistoryMessage[]> {
@@ -85,13 +110,12 @@ export async function processQuery(
     conversationId = data!.id;
   }
 
-  // TypeScript narrowing: conversationId is guaranteed non-null after the block above
   const convId = conversationId!;
 
   // 2. Classify intent
   const intent = classifyIntent(message);
 
-  // 3. Load conversation history (BEFORE saving current message to avoid duplication)
+  // 3. Load conversation history
   const history = await loadConversationHistory(convId);
 
   // 4. Save user message
@@ -103,21 +127,21 @@ export async function processQuery(
   let sources: SourceInfo[] = [];
 
   if (intent === "conversational") {
-    // 5a. Conversational: skip embedding/search, respond directly
     responseText = await generateConversationalResponse(message, history);
   } else {
-    // 5b. Technical: full RAG pipeline
-    const queryEmbedding = await getEmbedding(message);
-    const chunks = await searchSimilarChunks(queryEmbedding);
+    // 5b. Technical: full RAG pipeline with query expansion + hybrid search
+    const expandedQuery = await expandQuery(message);
+    const searchText = expandedQuery || message;
+
+    const queryEmbedding = await getEmbedding(searchText);
+    const chunks = await searchSimilarChunks(queryEmbedding, message);
 
     if (chunks.length > 0) {
       responseText = await generateResponse(message, chunks, history);
     } else {
-      // Fallback: use LLM general knowledge instead of static message
       responseText = await generateFallbackResponse(message, history);
     }
 
-    // Build sources
     sources = chunks.slice(0, 5).map((chunk) => ({
       document_name: chunk.doc_name || "",
       section: chunk.section_title ?? null,

@@ -15,7 +15,10 @@ class EmbeddingService:
         result = self.client.models.embed_content(
             model=self.model,
             contents=text,
-            config=types.EmbedContentConfig(output_dimensionality=self.dimensions),
+            config=types.EmbedContentConfig(
+                output_dimensionality=self.dimensions,
+                task_type="RETRIEVAL_QUERY",
+            ),
         )
         return list(result.embeddings[0].values)
 
@@ -26,7 +29,10 @@ class EmbeddingService:
             result = self.client.models.embed_content(
                 model=self.model,
                 contents=text,
-                config=types.EmbedContentConfig(output_dimensionality=self.dimensions),
+                config=types.EmbedContentConfig(
+                    output_dimensionality=self.dimensions,
+                    task_type="RETRIEVAL_DOCUMENT",
+                ),
             )
             embeddings.append(list(result.embeddings[0].values))
         return embeddings

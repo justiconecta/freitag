@@ -9,9 +9,25 @@ class VectorService:
         self.max_chunks = settings.rag_max_chunks
 
     async def search_similar_chunks(
-        self, query_embedding: list[float]
+        self, query_embedding: list[float], query_text: str = ""
     ) -> list[dict]:
-        """Search for similar document chunks using pgvector."""
+        """Search for similar document chunks using hybrid search (vector + FTS)."""
+        if query_text:
+            # Hybrid search: vector + full-text
+            result = self.supabase.rpc(
+                "hybrid_search_chunks",
+                {
+                    "query_embedding": query_embedding,
+                    "query_text": query_text,
+                    "match_threshold": self.threshold,
+                    "match_count": self.max_chunks,
+                },
+            ).execute()
+
+            if result.data:
+                return result.data
+
+        # Fallback: vector-only search
         result = self.supabase.rpc(
             "search_chunks",
             {

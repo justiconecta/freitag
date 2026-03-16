@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, TaskType } from "@google/generative-ai";
 
 const MODEL = "gemini-embedding-001";
 const DIMENSIONS = 768;
@@ -20,8 +20,10 @@ export async function getEmbedding(text: string): Promise<number[]> {
   const client = getClient();
   const model = client.getGenerativeModel({ model: MODEL });
 
-  const result = await model.embedContent(text);
+  const result = await model.embedContent({
+    content: { role: "user", parts: [{ text }] },
+    taskType: TaskType.RETRIEVAL_QUERY,
+  });
 
-  const values = result.embedding.values;
-  return values.slice(0, DIMENSIONS);
+  return result.embedding.values.slice(0, DIMENSIONS);
 }
